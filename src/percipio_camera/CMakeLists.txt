@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(percipio_camera)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
 # Default to Release if no build type is specified, but allow -DCMAKE_BUILD_TYPE=Debug to work.
@@ -34,7 +34,6 @@ set(dependencies
   image_transport
   lifecycle_msgs
   nav_msgs
-  pcl_conversions
   rclcpp
   rclcpp_components
   rclcpp_lifecycle
@@ -54,6 +53,18 @@ foreach (dep IN LISTS dependencies)
 endforeach ()
 
 find_package(Threads REQUIRED)
+
+# ROS 2 Lyrical has no ament_target_dependencies: link each dependency's exported targets instead.
+macro(link_ros_dependencies TARGET)
+  foreach(dep IN LISTS dependencies)
+    if(DEFINED ${dep}_TARGETS)
+      target_link_libraries(${TARGET} ${${dep}_TARGETS})
+    elseif(TARGET ${dep}::${dep})
+      target_link_libraries(${TARGET} ${dep}::${dep})
+    endif()
+  endforeach()
+  target_link_libraries(${TARGET} Eigen3::Eigen)
+endmacro()
 
 if(cv_bridge_VERSION VERSION_GREATER_EQUAL "3.3.0")
     add_definitions(-DUSE_CV_BRIDGE_HPP=1)
@@ -121,7 +132,7 @@ target_link_libraries(firmware_update ${PercipioFirmwareUpdate_LIB})
 macro(add_percipio_ros_executable TARGET SOURCE)
   add_executable(${TARGET} ${SOURCE})
   #target_include_directories(${TARGET} PUBLIC ${SDK_INCLUDE_DIRS} ${SOURCE_INCLUDES_DIR})
-  ament_target_dependencies(${TARGET} ${dependencies})
+  link_ros_dependencies(${TARGET})
   target_include_directories(${TARGET} SYSTEM PUBLIC ${SDK_INCLUDE_DIRS})
   target_include_directories(${TARGET} PUBLIC ${SOURCE_INCLUDES_DIR})
   target_link_libraries(${TARGET} ${TYCam_LIBS} ${PROJECT_NAME} Threads::Threads)
@@ -137,7 +148,7 @@ include_directories(${SOURCE_INCLUDES_DIR})
 add_library(${PROJECT_NAME} SHARED
     ${SOURCE_FILES}
 )
-ament_target_dependencies(${PROJECT_NAME} ${dependencies})
+link_ros_dependencies(${PROJECT_NAME})
 #target_include_directories(${PROJECT_NAME} PUBLIC ${SDK_INCLUDE_DIRS} ${SOURCE_INCLUDES_DIR})
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${SDK_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${SOURCE_INCLUDES_DIR})
