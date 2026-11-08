@@ -56,6 +56,8 @@ class PercipioCameraNode {
         std::string camera_link_frame_id_;
 
         bool tf_published_ = false;
+        // false when another node (robot_state_publisher) owns the camera's frames.
+        bool publish_tf_ = true;
         std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_ = nullptr;
 
         const std::shared_ptr<PercipioDevice>& device_ptr_;

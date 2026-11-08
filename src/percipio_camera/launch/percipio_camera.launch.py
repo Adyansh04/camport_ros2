@@ -35,7 +35,8 @@ def launch_setup(context, *args, **kwargs):
         'point_cloud_enable',
         'color_point_cloud_enable',
         'ir_undistortion',
-        'left_ir_enable'
+        'left_ir_enable',
+        'publish_tf'
     ]
     
     int_params = [
@@ -138,6 +139,8 @@ def generate_launch_description():
     # Declare arguments
     args_list = [
         DeclareLaunchArgument('camera_name', default_value='camera'),
+        # Publish the camera's static frames; false when the robot description holds them
+        DeclareLaunchArgument('publish_tf', default_value='true'),
         DeclareLaunchArgument('serial_number', default_value=''),
         DeclareLaunchArgument('device_ip', default_value=''),
         DeclareLaunchArgument('gdb_debug', default_value='false'),

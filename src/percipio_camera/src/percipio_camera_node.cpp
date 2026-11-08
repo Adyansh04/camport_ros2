@@ -92,6 +92,7 @@ void PercipioCameraNode::setAndGetNodeParameter(
 void PercipioCameraNode::getParameters() {
     setAndGetNodeParameter<std::string>(camera_name_, "camera_name", "camera");
     camera_link_frame_id_ = camera_name_ + "_link";
+    setAndGetNodeParameter(publish_tf_, "publish_tf", true);
 
     std::string param_name_desc;
     for (auto index : PERCIPIO_IMAGE_STREAMS) {
@@ -685,7 +686,7 @@ void PercipioCameraNode::publishStaticTransforms() {
 
 void PercipioCameraNode::onNewFrame(percipio_camera::VideoStream& stream) 
 {
-    if (!tf_published_) {
+    if (publish_tf_ && !tf_published_) {
       publishStaticTransforms();
       tf_published_ = true;
     }
